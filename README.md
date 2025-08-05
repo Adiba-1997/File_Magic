@@ -13,4 +13,4 @@ Privacy Focused:
 
 All processing happens in the browser
 
-Files never uploaded to a server
+
