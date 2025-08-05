@@ -655,38 +655,20 @@ async function convertWordToImage(file) {
 }
 
 async function convertPdfToWord(file) {
-    const arrayBuffer = await file.arrayBuffer();
-    const loadingTask = pdfjsLib.getDocument(arrayBuffer);
-    const pdf = await loadingTask.promise;
-    
-    let text = '';
-    for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        const strings = content.items.map(item => item.str);
-        text += strings.join(' ') + '\n\n';
-    }
-    
-    const { Document, Paragraph, Packer, TextRun } = docx;
-    
-    const doc = new Document({
-        sections: [{
-            properties: {},
-            children: [
-                new Paragraph({
-                    children: [
-                        new TextRun(text)
-                    ]
-                })
-            ]
-        }]
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('https://api.fileconvert.co.in/convert/pdf-to-word', {
+        method: 'POST',
+        body: formData
     });
-    
-    const docBuffer = await Packer.toBuffer(doc);
-    const docBlob = new Blob([docBuffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-    
+
+    if (!response.ok) throw new Error('Conversion failed.');
+
+    const blob = await response.blob();
+
     return {
-        file: docBlob,
+        file: blob,
         filename: file.name.replace(/\.[^/.]+$/, '') + '.docx'
     };
 }
@@ -1165,4 +1147,5 @@ function loadPptxGenJS() {
             document.head.appendChild(script);
         }
     });
+
 }
